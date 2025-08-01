@@ -1,23 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Barkod Okuyucu</title>
+  <meta charset="UTF-8">
+  <title>Barkod ile Ürün Arama</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #product { margin-top: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; width: 300px; }
+  </style>
 </head>
 <body>
-  <h2>Barkod Okuyucu</h2>
+  <h2>📦 Barkod ile Ürün Arama</h2>
+
   <div id="reader" style="width: 300px;"></div>
-  <p><strong>Barkod:</strong> <span id="result"></span></p>
+  <div id="product"></div>
 
   <script>
+    const products = {
+      "8681749651252": {
+        name: "Procase Kulaküstü Kulaklık",
+        price: "399 TL",
+        description: "Katlanabilir, mikrofonlu, 3.5mm jak"
+      },
+      "6931534500145": {
+        name: "TP-Link Kablosuz Mouse",
+        price: "229 TL",
+        description: "2.4GHz wireless, 1600 DPI, ergonomik"
+      }
+    };
+
+    function showProduct(barcode) {
+      const product = products[barcode];
+      const productDiv = document.getElementById("product");
+
+      if (product) {
+        productDiv.innerHTML = `
+          <h3>${product.name}</h3>
+          <p><strong>Fiyat:</strong> ${product.price}</p>
+          <p>${product.description}</p>
+        `;
+      } else {
+        productDiv.innerHTML = <p style="color:red;">Ürün bulunamadı: ${barcode}</p>;
+      }
+    }
+
     function onScanSuccess(decodedText, decodedResult) {
-      document.getElementById("result").innerText = decodedText;
-      // Tarayıcıyı durdurmak istersen:
-      html5QrcodeScanner.clear();
+      showProduct(decodedText);
+      html5QrcodeScanner.clear(); // kamerayı durdurmak için
     }
 
     const html5QrcodeScanner = new Html5QrcodeScanner(
-      "reader", { fps: 10, qrbox: 250 });
+      "reader", { fps: 10, qrbox: 250 }
+    );
     html5QrcodeScanner.render(onScanSuccess);
   </script>
 </body>
