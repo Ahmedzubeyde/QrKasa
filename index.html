@@ -6,13 +6,16 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body { font-family: Arial; padding: 20px; }
+    #reader { width: 300px; margin-top: 20px; display: none; }
     #product { margin-top: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; width: 300px; }
+    button { padding: 10px 20px; font-size: 16px; margin-top: 10px; }
   </style>
 </head>
 <body>
   <h2>📦 Barkod ile Ürün Arama</h2>
 
-  <div id="reader" style="width: 300px;"></div>
+  <button onclick="startScanner()">📷 Kamerayı Başlat</button>
+  <div id="reader"></div>
   <div id="product"></div>
 
   <script>
@@ -44,15 +47,27 @@
       }
     }
 
-    function onScanSuccess(decodedText, decodedResult) {
-      showProduct(decodedText);
-      html5QrcodeScanner.clear(); // kamerayı durdurmak için
-    }
+    function startScanner() {
+      const readerDiv = document.getElementById("reader");
+      readerDiv.style.display = "block";
 
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-      "reader", { fps: 10, qrbox: 250 }
-    );
-    html5QrcodeScanner.render(onScanSuccess);
+      const html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (decodedText, decodedResult) => {
+          showProduct(decodedText);
+          html5QrCode.stop().then(() => {
+            readerDiv.style.display = "none";
+          });
+        },
+        (errorMessage) => {
+          // Hata mesajını göstermek istemiyorsan boş bırak
+        }
+      ).catch(err => {
+        alert("Kamera başlatılamadı: " + err);
+      });
+    }
   </script>
 </body>
 </html>
