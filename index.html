@@ -1,71 +1,24 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Barkod Tara</title>
-  <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
-  <style>
-    body { font-family: Arial; text-align: center; padding: 20px; }
-    #reader { width: 300px; margin: auto; display: none; }
-    #product { margin-top: 20px; }
-    button { padding: 10px 20px; font-size: 16px; }
-  </style>
+  <title>Barkod Okuyucu</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
-
-  <h2>📷 Barkod Okuyucu</h2>
-  <button onclick="startScanner()">📷 Barkodu Tara</button>
-  <div id="reader"></div>
-  <div id="product"></div>
+  <h2>Barkod Okuyucu</h2>
+  <div id="reader" style="width: 300px;"></div>
+  <p><strong>Barkod:</strong> <span id="result"></span></p>
 
   <script>
-    const products = {
-      "8681749651252": {
-        name: "Procase Kulaküstü Kulaklık",
-        price: "399 TL",
-        description: "Katlanabilir, mikrofonlu, 3.5mm jak"
-      },
-      "6931534500145": {
-        name: "TP-Link Kablosuz Mouse",
-        price: "229 TL",
-        description: "2.4GHz wireless, 1600 DPI, ergonomik"
-      }
-    };
-
-    function showProduct(barcode) {
-      const productDiv = document.getElementById("product");
-      if (products[barcode]) {
-        const p = products[barcode];
-        productDiv.innerHTML = `
-          <h3>${p.name}</h3>
-          <p><strong>Fiyat:</strong> ${p.price}</p>
-          <p>${p.description}</p>
-        `;
-      } else {
-        productDiv.innerHTML = <p style="color:red;">Ürün bulunamadı: ${barcode}</p>;
-      }
+    function onScanSuccess(decodedText, decodedResult) {
+      document.getElementById("result").innerText = decodedText;
+      // Tarayıcıyı durdurmak istersen:
+      html5QrcodeScanner.clear();
     }
 
-    function startScanner() {
-      const readerDiv = document.getElementById("reader");
-      readerDiv.style.display = "block";
-      const html5QrCode = new Html5Qrcode("reader");
-
-      html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        (decodedText, decodedResult) => {
-          showProduct(decodedText);
-          html5QrCode.stop().then(() => {
-            readerDiv.style.display = "none";
-          });
-        },
-        (errorMessage) => { /* hata gösterme */ }
-      ).catch((err) => {
-        alert("Kamera başlatılamadı: " + err);
-      });
-    }
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+      "reader", { fps: 10, qrbox: 250 });
+    html5QrcodeScanner.render(onScanSuccess);
   </script>
-
 </body>
 </html>
