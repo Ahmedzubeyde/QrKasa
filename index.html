@@ -1,94 +1,59 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Barkod Okuyucu</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Roboto', sans-serif;
-    }
-
     body {
-      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
       padding: 20px;
-      background: #f2f4f8;
-      color: #333;
-    }
-
-    h2 {
-      text-align: center;
-      color: #2c3e50;
     }
 
     .container {
       max-width: 500px;
       margin: 0 auto;
-      background: #fff;
+      background-color: #fff;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
     }
 
     #reader {
       width: 100%;
       margin-bottom: 15px;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    #result {
-      font-weight: bold;
-      color: #2980b9;
     }
 
     input[type="text"] {
       width: 100%;
       padding: 10px;
-      margin-top: 10px;
-      margin-bottom: 20px;
+      font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 16px;
+      margin-bottom: 20px;
     }
 
-    ul#productList {
-      list-style: none;
-      padding: 0;
+    #productList li {
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #eef;
     }
 
-    ul#productList li {
-      padding: 12px;
-      margin-bottom: 8px;
-      background-color: #ecf0f1;
-      border-radius: 6px;
-      transition: all 0.3s;
+    #productList li.highlight {
+      background-color: #c9f7c9;
+      border: 1px solid #28a745;
     }
 
-    ul#productList li.highlight {
-      background-color: #d1f0d1;
-      border: 2px solid #27ae60;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        padding: 15px;
-      }
-
-      h2 {
-        font-size: 1.5em;
-      }
-
-      input[type="text"] {
-        font-size: 14px;
-      }
-
-      ul#productList li {
-        font-size: 14px;
-      }
+    p {
+      font-weight: bold;
     }
   </style>
 </head>
@@ -96,7 +61,8 @@
   <div class="container">
     <h2>Barkod Okuyucu</h2>
     <div id="reader"></div>
-    <p><strong>Barkod:</strong> <span id="result">Henüz taranmadı</span></p>
+    <p><strong>Barkod:</strong> <span id="result">Henüz okunmadı</span></p>
+
     <input type="text" id="searchBox" placeholder="Ürün ara...">
 
     <ul id="productList">
@@ -105,4 +71,68 @@
       <li data-barcode="1234567890123">Ürün C - Barkod: 1234567890123</li>
     </ul>
   </div>
-  
+
+  <script>
+    const html5QrCode = new Html5Qrcode("reader");
+    const qrConfig = {
+      fps: 10,
+      qrbox: { width: 250, height: 250 }
+    };
+
+    let lastScanned = "";
+
+    function filterProducts(searchTerm) {
+      searchTerm = searchTerm.trim();
+      const items = document.querySelectorAll("#productList li");
+
+      items.forEach(item => {
+        item.classList.remove("highlight");
+        const barcode = item.getAttribute("data-barcode");
+
+        if (barcode.includes(searchTerm) || item.textContent.toLowerCase().includes(searchTerm.toLowerCase())) {
+          item.style.display = "";
+          if (barcode === searchTerm) {
+            item.classList.add("highlight");
+          }
+        } else {
+          item.style.display = "none";
+        }
+      });
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+      if (decodedText === lastScanned) return;
+      lastScanned = decodedText;
+
+      document.getElementById("result").innerText = decodedText;
+      document.getElementById("searchBox").value = decodedText;
+      filterProducts(decodedText);
+    }
+
+    // Kamera başlat
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        let cameraId = devices[0].id;
+        html5QrCode.start(
+          cameraId,
+          qrConfig,
+          onScanSuccess,
+          error => {
+            // console.warn("Tarama hatası:", error);
+          }
+        ).catch(err => {
+          console.error("Kamera başlatılamadı:", err);
+        });
+      }
+    }).catch(err => {
+      console.error("Kamera erişimi alınamadı:", err);
+    });
+
+    // Manuel arama kutusu
+    document.getElementById("searchBox").addEventListener("input", (e) => {
+      filterProducts(e.target.value);
+    });
+  </script>
+</body>
+</html>
+
